@@ -49,7 +49,8 @@ class Encoder(nn.Module):
             hidden = self.cnn(x)
             hidden = hidden.view(hidden.size(0), -1)
             self.fc = nn.Linear(hidden.size(1), self.args.hidden_dim)
-
+            if self.args.cuda:
+                self.cuda()
             hidden = F.relu( self.fc(hidden) )
         else:
             raise Exception("Model form {} not yet supported for encoder!".format(args.model_form))
