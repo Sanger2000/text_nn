@@ -36,12 +36,16 @@ def parse_args():
     parser.add_argument('--num_workers' , type=int, default=4, help='num workers for data loader')
     # model
     parser.add_argument('--model_form', type=str, default='cnn', help="Form of model, i.e cnn, rnn, etc.")
+    parser.add_argument('--use_embedding_fc', type=bool, default=False, help="Use embedding fc before conv-net")
     parser.add_argument('--hidden_dim', type=int, default=100, help="Dim of hidden layer")
-    parser.add_argument('--num_layers', type=int, default=1, help="Num layers of model_form to use")
+    parser.add_argument('--num_layers', type=int, default=6, help="Num layers of model_form to use")
     parser.add_argument('--dropout', type=float, default=0.1, help='the probability for dropout [default: 0.5]')
     parser.add_argument('--weight_decay', type=float, default=1e-3, help='L2 norm penalty [default: 1e-3]')
-    parser.add_argument('--filter_num', type=int, default=100, help='number of each kind of kernel')
-    parser.add_argument('--filters', type=str, default='3,4,5', help='comma-separated kernel size to use for convolution')
+    parser.add_argument('--filter_num', type=int, default=None, help='number of each kind of kernel')
+    parser.add_argument('--filters', type=str, default=None, help='comma-separated kernel size to use for convolution')
+    parser.add_argument('--filter_sizes', type=str, default='256,256,256,256,256,256')
+    parser.add_argument('--kernel_sizes', type=str, default='7,7,3,3,3,3')
+    parser.add_argument('--pool_sizes', type=str, default='3,3,None,None,None,3')
     # data
     parser.add_argument('--dataset', default='news_group', help='choose which dataset to run on. [default: news_group]')
     parser.add_argument('--embedding', default='glove', help='choose what embeddings to use. To use them, please download them to "embeddings/glove.6B.300d.txt and set this argument to "glove" [default: random] ')
@@ -62,14 +66,46 @@ def parse_args():
     args = parser.parse_args()
 
     # update args and print
-    args.filters = [int(k) for k in args.filters.split(',')]
+    if args.filters != None:
+        args.filters = [int(k) for k in args.filters.split(',')]
     if args.objective == 'mse':
         args.num_class = 1
+    if args.kernel_sizes != 'None':
+        kernel_maker = []
+        for k in args.kernel_sizes.split(','):
+            try:
+                kernel_maker.append(int(k))
+            except:
+                kernel_maker.append(None)
+        args.kernel_sizes = kernel_maker
+    else:
+        args.kernel_sizes =[None for i in range(args.num_layers)]
+
+    if args.filter_sizes != 'None':
+        filter_maker = []
+        for k in args.filter_sizes.split(','):
+            try:
+                filter_maker.append(int(k))
+            except:
+                filter_maker.append(None)
+        args.filter_sizes = filter_maker
+    else:
+        args.filter_sizes = [None for i in range(args.num_layers)]
+
+    if args.pool_sizes != 'None':
+        pool_maker = []
+        for k in args.pool_sizes.split(','):
+            try:
+                pool_maker.append(int(k))
+            except:
+                pool_maker.append(None)
+        args.pool_sizes = pool_maker
+    else:
+        args.pool_sizes = [None for i in range(args.num_layers)]
+
 
     print("\nParameters:")
     for attr, value in sorted(args.__dict__.items()):
         print("\t{}={}".format(attr.upper(), value))
 
     return args
-
-

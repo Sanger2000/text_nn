@@ -21,7 +21,7 @@ class Encoder(nn.Module):
 
         if args.model_form == 'cnn':
             self.cnn = cnn.CNN(args, max_pool_over_time=(not args.use_as_tagger))
-            self.fc = nn.Linear( len(args.filters)*args.filter_num,  args.hidden_dim)
+
         else:
             raise NotImplementedError("Model form {} not yet supported for encoder!".format(args.model_form))
 
@@ -31,19 +31,25 @@ class Encoder(nn.Module):
     def forward(self, x_indx, mask=None):
         '''
             x_indx:  batch of word indices
-            mask: Mask to apply over embeddings for tao ratioanles
+            mask: Mask to apply over embeddings for tao rationales
         '''
         x = self.embedding_layer(x_indx.squeeze(1))
         if self.args.cuda:
                 x = x.cuda()
         if not mask is None:
+            print(x.shape)
             x = x * mask.unsqueeze(-1)
-        x = F.relu( self.embedding_fc(x))
-        x = self.dropout(x)
+            print(x.shape)
+        if self.args.use_embedding_fc:
+            x = F.relu( self.embedding_fc(x))
+            x = self.dropout(x)
 
         if self.args.model_form == 'cnn':
             x = torch.transpose(x, 1, 2) # Switch X to (Batch, Embed, Length)
             hidden = self.cnn(x)
+            hidden = hidden.view(hidden.size(0), -1)
+            self.fc = nn.Linear(hidden.size(1), self.args.hidden_dim)
+
             hidden = F.relu( self.fc(hidden) )
         else:
             raise Exception("Model form {} not yet supported for encoder!".format(args.model_form))

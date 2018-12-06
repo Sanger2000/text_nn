@@ -62,8 +62,8 @@ def get_optimizer(models, args):
     return torch.optim.Adam(params, lr=args.lr,  weight_decay=args.weight_decay)
 
 
-def get_x_indx(batch, args, eval_model):
-    x_indx = autograd.Variable(batch['x'], volatile=eval_model)
+def get_x_indx(batch, args, eval_model, type='x_char'):
+    x_indx = autograd.Variable(batch[type], volatile=eval_model)
     return x_indx
 
 

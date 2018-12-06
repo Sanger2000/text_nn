@@ -44,13 +44,15 @@ def preprocess_data(data):
 @RegisterDataset('news_group')
 class NewsGroupDataset(AbstractDataset):
 
-    def __init__(self, args, word_to_indx, name, max_length=80):
+    def __init__(self, args, word_to_indx, char_to_indx, name, max_word_length=80, max_char_length=1014):
         self.args = args
         self.args.num_class = 20
         self.name = name
         self.dataset = []
         self.word_to_indx  = word_to_indx
-        self.max_length = max_length
+        self.char_to_indx = char_to_indx
+        self.max_word_length = max_word_length
+        self.max_char_length = max_char_length
         self.class_balance = {}
 
         if name in ['train', 'dev']:
@@ -82,7 +84,10 @@ class NewsGroupDataset(AbstractDataset):
     ## Convert one line from beer dataset to {Text, Tensor, Labels}
     def processLine(self, row):
         text, label, label_name = row
-        text = " ".join(text.split()[:self.max_length])
-        x =  get_indices_tensor(text.split(), self.word_to_indx, self.max_length)
-        sample = {'text':text,'x':x, 'y':label, 'y_name': label_name}
+        char = [c for c in text[::-1]][:self.max_char_length]
+        text = " ".join(text.split()[:self.max_word_length])
+
+        x1 = get_indices_tensor(char, self.char_to_indx, self.max_char_length)
+        x2 =  get_indices_tensor(text.split(), self.word_to_indx, self.max_word_length)
+        sample = {'text':text,'x_char':x1, 'x_word':x2, 'y':label, 'y_name': label_name}
         return sample

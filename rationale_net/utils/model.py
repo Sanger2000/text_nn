@@ -13,6 +13,7 @@ def get_model(args, embeddings, train_data):
             gen = empty.Empty()
             model = tagger.Tagger(embeddings, args)
         else:
+            
             gen   = generator.Generator(embeddings, args)
             model = encoder.Encoder(embeddings, args)
     else :

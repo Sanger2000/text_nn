@@ -37,7 +37,7 @@ class CharacterCNN(nn.Module):
         self.dropout = nn.Dropout(0.5)
 
         for layer in range(NUM_CONV_LAYERS):
-            in_channel = args.embedding_dim if layer==0 else self.filter_size:
+            in_channel = args.embedding_dim if layer==0 else self.filter_size
             kernel_size = KERNEL_SIZES[layer]
 
             new_conv = nn.Conv1d(in_channels=in_channels, out_channels=self.filter_size, kernel_size=kernel_size)
@@ -69,10 +69,8 @@ class CharacterCNN(nn.Module):
         #layer 8:
         x = nn.Linear(self.fully_connected_size, self.fully_connected_size)(x)
         x = self.relu(x)
-        x = self.dropout()
 
-        #layer 9:
-        x = nn.Linear(self.fully_connected_size, args.output_layer)()
-        x = self.relu(x)
+
+
 
         return x

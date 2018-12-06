@@ -73,6 +73,20 @@ def getGloveEmbedding(args):
     embedding_tensor = np.array(embedding_tensor, dtype=np.float32)
     return embedding_tensor, word_to_indx
 
+@RegisterEmbedding('char')
+def getCharEmbedding(args):
+    alphabet = "abcdefghijklmnopqrstuvwxyz0123456789-,;.!?:'\"/\\|_@#$%^&*~`+-=<>()[]{}\n"
+    word_to_indx = {}
+    embedding_tensor = [[0 for i in range(len(alphabet))] for j in range(len(alphabet)+1)]
+
+    for i in range(len(alphabet)):
+        embedding_tensor[i+1][i] = 1
+        word_to_indx[alphabet[i]] = i+1
+
+    embedding_tensor = np.array(embedding_tensor, dtype=np.float32)
+    return embedding_tensor, word_to_indx
+
+
 
 def get_indices_tensor(text_arr, word_to_indx, max_length):
     '''
