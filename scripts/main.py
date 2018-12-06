@@ -19,15 +19,17 @@ if __name__ == '__main__':
     # update args and print
     args = generic.parse_args()
 
-    embeddings, word_to_indx = embedding.get_embedding_tensor(args)
+    word_embeddings, word_to_indx = embedding.get_embedding_tensor(args)
+    args.embedding = 'char'
+    char_embeddings, char_to_indx = embedding.get_embedding_tensor(args)
 
-    train_data, dev_data, test_data = dataset_factory.get_dataset(args, word_to_indx)
+    train_data, dev_data, test_data = dataset_factory.get_dataset(args, word_to_indx, char_to_indx)
 
     results_path_stem = args.results_path.split('/')[-1].split('.')[0]
     args.model_path = '{}.pt'.format(os.path.join(args.save_dir, results_path_stem))
 
     # model
-    gen, model = model_factory.get_model(args, embeddings, train_data)
+    gen, model = model_factory.get_model(args, char_embeddings, train_data)
 
     print()
     # train
