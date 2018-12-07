@@ -58,5 +58,7 @@ class Encoder(nn.Module):
             raise Exception("Model form {} not yet supported for encoder!".format(args.model_form))
 
         hidden = self.dropout(hidden)
-        logit = self.hidden(hidden)
+        hidden = self.first_hidden(hidden)
+        hidden = self.dropout(hidden)
+        logit = self.second_hidden(hidden)
         return logit, hidden
