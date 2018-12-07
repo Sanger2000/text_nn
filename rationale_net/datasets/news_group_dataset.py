@@ -84,10 +84,12 @@ class NewsGroupDataset(AbstractDataset):
     ## Convert one line from beer dataset to {Text, Tensor, Labels}
     def processLine(self, row):
         text, label, label_name = row
-        char = [c for c in text[::-1]][:self.max_char_length]
-        text = " ".join(text.split()[:self.max_word_length])
+
+        char = [c for c in text[::-1]]
+
 
         x1 = get_indices_tensor(char, self.char_to_indx, self.max_char_length)
         x2 =  get_indices_tensor(text.split(), self.word_to_indx, self.max_word_length)
+
         sample = {'text':text,'x_char':x1, 'x_word':x2, 'y':label, 'y_name': label_name}
         return sample

@@ -15,18 +15,20 @@ class Encoder(nn.Module):
         self.embedding_dim = hidden_dim
         self.embedding_layer = nn.Embedding( vocab_size, hidden_dim)
         self.embedding_layer.weight.data = torch.from_numpy( embeddings )
-        self.embedding_layer.weight.requires_grad = False 
-        self.embedding_fc = nn.Linear( hidden_dim, hidden_dim )
-        self.embedding_bn = nn.BatchNorm1d( hidden_dim)
+        self.embedding_layer.weight.requires_grad = False
+        #self.embedding_fc = nn.Linear( hidden_dim, hidden_dim )
+        #self.embedding_bn = nn.BatchNorm1d( hidden_dim)
 
         if args.model_form == 'cnn':
-            self.cnn = cnn.CNN(args, max_pool_over_time=(not args.use_as_tagger))
+            self.cnn = cnn.CNN(args, max_pool_over_time=False)
 
         else:
             raise NotImplementedError("Model form {} not yet supported for encoder!".format(args.model_form))
 
         self.dropout = nn.Dropout(args.dropout)
-        self.hidden = nn.Linear(args.hidden_dim, args.num_class)
+        self.first_hidden = nn.Linear(args.hidden_dim, args.hidden_dim)
+        self.second_hidden = nn.Linear(args.hidden_dim, args.num_class)
+
 
     def forward(self, x_indx, mask=None):
         '''
@@ -38,9 +40,11 @@ class Encoder(nn.Module):
                 x = x.cuda()
         if not mask is None:
             x = x * mask.unsqueeze(-1)
+        '''
         if self.args.use_embedding_fc:
             x = F.relu( self.embedding_fc(x))
             x = self.dropout(x)
+        '''
 
         if self.args.model_form == 'cnn':
             x = torch.transpose(x, 1, 2) # Switch X to (Batch, Embed, Length)

@@ -37,7 +37,7 @@ def parse_args():
     # model
     parser.add_argument('--model_form', type=str, default='cnn', help="Form of model, i.e cnn, rnn, etc.")
     parser.add_argument('--use_embedding_fc', type=bool, default=False, help="Use embedding fc before conv-net")
-    parser.add_argument('--hidden_dim', type=int, default=100, help="Dim of hidden layer")
+    parser.add_argument('--hidden_dim', type=int, default=1024, help="Dim of hidden layer")
     parser.add_argument('--num_layers', type=int, default=6, help="Num layers of model_form to use")
     parser.add_argument('--dropout', type=float, default=0.1, help='the probability for dropout [default: 0.5]')
     parser.add_argument('--weight_decay', type=float, default=1e-3, help='L2 norm penalty [default: 1e-3]')
