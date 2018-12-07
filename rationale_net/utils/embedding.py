@@ -35,9 +35,9 @@ def get_embedding_tensor(args):
 
 @RegisterEmbedding('beer')
 def getBeerEmbedding(args):
-    embedding_path='raw_data/beer_review/review+wiki.filtered.200.txt.gz'
+    embedding_path='raw_data/beer_review/review+wiki.filtered.200.txt'
     lines = []
-    with gzip.open(embedding_path) as file:
+    with open(embedding_path) as file:
         lines = file.readlines()
         file.close()
     embedding_tensor = []

@@ -25,9 +25,11 @@ class Encoder(nn.Module):
         else:
             raise NotImplementedError("Model form {} not yet supported for encoder!".format(args.model_form))
 
+        self.fc = nn.Linear((1014-96)/27 * self.args.filter_sizes[-1], self.args.hidden_dim)
         self.dropout = nn.Dropout(args.dropout)
         self.first_hidden = nn.Linear(args.hidden_dim, args.hidden_dim)
         self.second_hidden = nn.Linear(args.hidden_dim, args.num_class)
+
 
 
     def forward(self, x_indx, mask=None):
@@ -50,10 +52,7 @@ class Encoder(nn.Module):
             x = torch.transpose(x, 1, 2) # Switch X to (Batch, Embed, Length)
             hidden = self.cnn(x)
             hidden = hidden.view(hidden.size(0), -1)
-            self.fc = nn.Linear(hidden.size(1), self.args.hidden_dim)
-            if self.args.cuda:
-                self.cuda()
-            hidden = F.relu( self.fc(hidden) )
+            hidden = F.relu(self.fc(hidden))
         else:
             raise Exception("Model form {} not yet supported for encoder!".format(args.model_form))
 
