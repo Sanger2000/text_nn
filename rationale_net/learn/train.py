@@ -170,7 +170,6 @@ def run_epoch(data_loader, train_model, model, gen, optimizer, step, args):
     else:
         gen.eval()
         model.eval()
-
     num_batches_per_epoch = len(data_iter)
     if train_model:
         num_batches_per_epoch = min(len(data_iter), 10000)

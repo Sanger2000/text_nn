@@ -15,7 +15,7 @@ class Encoder(nn.Module):
         self.embedding_dim = hidden_dim
         self.embedding_layer = nn.Embedding( vocab_size, hidden_dim)
         self.embedding_layer.weight.data = torch.from_numpy( embeddings )
-        self.embedding_layer.weight.requires_grad = True
+        self.embedding_layer.weight.requires_grad = False 
         self.embedding_fc = nn.Linear( hidden_dim, hidden_dim )
         self.embedding_bn = nn.BatchNorm1d( hidden_dim)
 
@@ -37,9 +37,7 @@ class Encoder(nn.Module):
         if self.args.cuda:
                 x = x.cuda()
         if not mask is None:
-            print(x.shape)
             x = x * mask.unsqueeze(-1)
-            print(x.shape)
         if self.args.use_embedding_fc:
             x = F.relu( self.embedding_fc(x))
             x = self.dropout(x)
