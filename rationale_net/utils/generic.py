@@ -46,10 +46,12 @@ def parse_args():
     parser.add_argument('--filter_sizes', type=str, default='256,256,256,256,256,256')
     parser.add_argument('--kernel_sizes', type=str, default='7,7,3,3,3,3')
     parser.add_argument('--pool_sizes', type=str, default='3,3,None,None,None,3')
+    parser.add_argument('--hidden_dim', type=str, default='1024, 1024')
     # data
     parser.add_argument('--dataset', default='news_group', help='choose which dataset to run on. [default: news_group]')
     parser.add_argument('--embedding', default='glove', help='choose what embeddings to use. To use them, please download them to "embeddings/glove.6B.300d.txt and set this argument to "glove" [default: random] ')
-
+    parser.add_argument('--max_word_length', type=int, default=80, help='choose the maximum sequence length for word vectors')
+    parser.add_argument('--max_char_length', type=int, default=1446, help='choose the maximum sequence length for char vectors'
     # gumbel
     parser.add_argument('--gumbel_temprature', type=float, default=1, help="Start temprature for gumbel softmax. This is annealed via exponential decay")
     parser.add_argument('--gumbel_decay', type=float, default=1e-5, help="Start temprature for gumbel softmax. This is annealed via linear decay")
