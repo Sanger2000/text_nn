@@ -37,7 +37,6 @@ def parse_args():
     # model
     parser.add_argument('--model_form', type=str, default='cnn', help="Form of model, i.e cnn, rnn, etc.")
     parser.add_argument('--use_embedding_fc', type=bool, default=False, help="Use embedding fc before conv-net")
-    parser.add_argument('--hidden_dim', type=int, default=1024, help="Dim of hidden layer")
     parser.add_argument('--num_layers', type=int, default=6, help="Num layers of model_form to use")
     parser.add_argument('--dropout', type=float, default=0.1, help='the probability for dropout [default: 0.5]')
     parser.add_argument('--weight_decay', type=float, default=1e-3, help='L2 norm penalty [default: 1e-3]')
@@ -46,12 +45,12 @@ def parse_args():
     parser.add_argument('--filter_sizes', type=str, default='256,256,256,256,256,256')
     parser.add_argument('--kernel_sizes', type=str, default='7,7,3,3,3,3')
     parser.add_argument('--pool_sizes', type=str, default='3,3,None,None,None,3')
-    parser.add_argument('--hidden_dim', type=str, default='1024, 1024')
+    parser.add_argument('--hidden_dim', type=str, default='1024,1024')
     # data
     parser.add_argument('--dataset', default='news_group', help='choose which dataset to run on. [default: news_group]')
     parser.add_argument('--embedding', default='glove', help='choose what embeddings to use. To use them, please download them to "embeddings/glove.6B.300d.txt and set this argument to "glove" [default: random] ')
     parser.add_argument('--max_word_length', type=int, default=80, help='choose the maximum sequence length for word vectors')
-    parser.add_argument('--max_char_length', type=int, default=1446, help='choose the maximum sequence length for char vectors'
+    parser.add_argument('--max_char_length', type=int, default=1446, help='choose the maximum sequence length for char vectors')
     # gumbel
     parser.add_argument('--gumbel_temprature', type=float, default=1, help="Start temprature for gumbel softmax. This is annealed via exponential decay")
     parser.add_argument('--gumbel_decay', type=float, default=1e-5, help="Start temprature for gumbel softmax. This is annealed via linear decay")
@@ -105,6 +104,17 @@ def parse_args():
     else:
         args.pool_sizes = [None for i in range(args.num_layers)]
 
+    if args.hidden_dim != 'None':
+            dim_maker = []
+            for k in args.hidden_dim.split(','):
+                print(k)
+                try:
+                    dim_maker.append(int(k))
+                except:
+                    dim_maker.append(None)
+            args.hidden_dim = dim_maker
+    else:
+        args.hidden_dim =[None] 
 
     print("\nParameters:")
     for attr, value in sorted(args.__dict__.items()):

@@ -44,7 +44,7 @@ def preprocess_data(data):
 @RegisterDataset('news_group')
 class NewsGroupDataset(AbstractDataset):
 
-    def __init__(self, args, word_to_indx, char_to_indx, name, max_word_length=80, max_char_length=1014):
+    def __init__(self, args, word_to_indx, char_to_indx, name):
         self.args = args
         self.args.num_class = 20
         self.name = name
