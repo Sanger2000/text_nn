@@ -51,8 +51,8 @@ class NewsGroupDataset(AbstractDataset):
         self.dataset = []
         self.word_to_indx  = word_to_indx
         self.char_to_indx = char_to_indx
-        self.max_word_length = self.args.max_word_length
-        self.max_char_length = self.args.max_char_length
+        self.max_word_length = args.max_word_length
+        self.max_char_length = args.max_char_length
         self.class_balance = {}
 
         if name in ['train', 'dev']:

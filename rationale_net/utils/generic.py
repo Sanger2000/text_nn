@@ -37,14 +37,12 @@ def parse_args():
     # model
     parser.add_argument('--model_form', type=str, default='cnn', help="Form of model, i.e cnn, rnn, etc.")
     parser.add_argument('--use_embedding_fc', type=bool, default=False, help="Use embedding fc before conv-net")
-    parser.add_argument('--num_layers', type=int, default=6, help="Num layers of model_form to use")
+    parser.add_argument('--num_layers', type=int, default=2, help="Num layers of model_form to use")
     parser.add_argument('--dropout', type=float, default=0.1, help='the probability for dropout [default: 0.5]')
     parser.add_argument('--weight_decay', type=float, default=1e-3, help='L2 norm penalty [default: 1e-3]')
-    parser.add_argument('--filter_num', type=int, default=None, help='number of each kind of kernel')
-    parser.add_argument('--filters', type=str, default=None, help='comma-separated kernel size to use for convolution')
+    parser.add_argument('--filter_num', type=str, default='256,1024', help='number of each kind of kernel')
+    parser.add_argument('--filters', type=str, default='3,5,7', help='comma-separated kernel size to use for convolution')
     parser.add_argument('--filter_sizes', type=str, default='256,256,256,256,256,256')
-    parser.add_argument('--kernel_sizes', type=str, default='7,7,3,3,3,3')
-    parser.add_argument('--pool_sizes', type=str, default='3,3,None,None,None,3')
     parser.add_argument('--hidden_dim', type=str, default='1024,1024')
     # data
     parser.add_argument('--dataset', default='news_group', help='choose which dataset to run on. [default: news_group]')
@@ -71,16 +69,6 @@ def parse_args():
         args.filters = [int(k) for k in args.filters.split(',')]
     if args.objective == 'mse':
         args.num_class = 1
-    if args.kernel_sizes != 'None':
-        kernel_maker = []
-        for k in args.kernel_sizes.split(','):
-            try:
-                kernel_maker.append(int(k))
-            except:
-                kernel_maker.append(None)
-        args.kernel_sizes = kernel_maker
-    else:
-        args.kernel_sizes =[None for i in range(args.num_layers)]
 
     if args.filter_sizes != 'None':
         filter_maker = []
@@ -93,16 +81,16 @@ def parse_args():
     else:
         args.filter_sizes = [None for i in range(args.num_layers)]
 
-    if args.pool_sizes != 'None':
-        pool_maker = []
-        for k in args.pool_sizes.split(','):
+    if args.filter_num != 'None':
+        filter_num_maker = []
+        for k in args.filter_num.split(','):
             try:
-                pool_maker.append(int(k))
+                filter_num_maker.append(int(k))
             except:
-                pool_maker.append(None)
-        args.pool_sizes = pool_maker
+                filter_num_maker.append(None)
+        args.filter_num = filter_num_maker
     else:
-        args.pool_sizes = [None for i in range(args.num_layers)]
+        args.filter_num = [None for i in range(args.num_layers)]
 
     if args.hidden_dim != 'None':
             dim_maker = []

@@ -10,7 +10,7 @@ SMALL_TRAIN_SIZE = 800
 @RegisterDataset('full_beer')
 class FullBeerDataset(AbstractDataset):
 
-    def __init__(self, args, word_to_indx, char_to_indx, mode, max_char_length=1014, max_word_length=250, stem='raw_data/beer_review/reviews.aspect'):
+    def __init__(self, args, word_to_indx, char_to_indx, mode, stem='raw_data/beer_review/reviews.aspect'):
         aspect = args.aspect
         self.args= args
         self.name = mode
@@ -18,8 +18,8 @@ class FullBeerDataset(AbstractDataset):
         self.dataset = []
         self.char_to_indx  = char_to_indx
         self.word_to_indx = word_to_indx 
-        self.max_word_length = max_word_length
-        self.max_char_length = max_char_length
+        self.max_word_length = args.max_word_length
+        self.max_char_length = args.max_char_length
         self.aspects_to_num = {'appearance':0, 'aroma':1, 'palate':2,'taste':3, 'overall':4}
         self.class_map = {0: 0, 1:0, 2:0, 3:0, 4:1, 5:1, 6:1, 7:1, 8:2, 9:2, 10:2}
         self.name_to_key = {'train':'train', 'dev':'heldout', 'test':'heldout'}
