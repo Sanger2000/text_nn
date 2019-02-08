@@ -1,3 +1,4 @@
+
 import gzip
 import re
 import tqdm
@@ -8,45 +9,35 @@ from sklearn.datasets import fetch_20newsgroups
 import random
 random.seed(0)
 
+def preprocess_data(set_type):
+    '''
+    input: specifies test or train directory
+    output: tuple of (features, labels) for data where labels are 0 for negative 1 for
+    positive and features is a list of each review
+    '''
+    label_dictionary = [0, 0, 0, 1, None, None, 1, 2, 2, 2]
+    label_name_dictionary = ['Worst', 'Medium', 'Best']
 
-SMALL_TRAIN_SIZE = 800
-CATEGORIES = ['alt.atheism',
- 'comp.graphics',
- 'comp.os.ms-windows.misc',
- 'comp.sys.ibm.pc.hardware',
- 'comp.sys.mac.hardware',
- 'comp.windows.x',
- 'misc.forsale',
- 'rec.autos',
- 'rec.motorcycles',
- 'rec.sport.baseball',
- 'rec.sport.hockey',
- 'sci.crypt',
- 'sci.electronics',
- 'sci.med',
- 'sci.space',
- 'soc.religion.christian',
- 'talk.politics.guns',
- 'talk.politics.mideast',
- 'talk.politics.misc',
- 'talk.religion.misc']
+    filename = "raw_data/imdb/%s/" %data_type
+    preprocessed_data = []
+    for sentiment in ('neg', 'pos'):
+        for file in os.listdir(filename + sentiment):
+            label = label_dictionary[int(file[file.index('_')+1:file.index('.')])-1]
 
-def preprocess_data(data):
-    processed_data = []
-    for indx, sample in enumerate(data['data']):
-        text, label = sample, data['target'][indx]
-        label_name = data['target_names'][label]
-        text = re.sub('\W+', ' ', text).lower().strip()
-        processed_data.append( (text, label, label_name) )
-    return processed_data
+            text = open(filename + sentiment + '/' + file, 'r').read()
+            text = re.sub('\W+', ' ', text).lower().strip()
 
+            label_name = label_name_dictionary[label]
 
-@RegisterDataset('news_group')
-class NewsGroupDataset(AbstractDataset):
+            preprocessed_data.append((text, label, label_name))
+    return preprocessed_data
+
+@RegisterDataset('imdb')
+class IMDBDataset(AbstractDataset):
 
     def __init__(self, args, word_to_indx, char_to_indx, name):
         self.args = args
-        self.args.num_class = 20
+        self.args.num_class = 3
         self.name = name
         self.dataset = []
         self.word_to_indx  = word_to_indx
@@ -56,7 +47,7 @@ class NewsGroupDataset(AbstractDataset):
         self.class_balance = {}
 
         if name in ['train', 'dev']:
-            data = preprocess_data(fetch_20newsgroups(subset='train', remove=('headers', 'footers', 'quotes'), categories=CATEGORIES))
+            data = preprocess_data('train')
             random.seed(0)
             random.shuffle(data)
             num_train = int(len(data)*.8)
@@ -65,7 +56,7 @@ class NewsGroupDataset(AbstractDataset):
             else:
                 data = data[num_train:]
         else:
-            data = preprocess_data(fetch_20newsgroups(subset='test', remove=('headers', 'footers', 'quotes'), categories=CATEGORIES))
+            data = preprocess_data('test')
 
         for indx, _sample in tqdm.tqdm(enumerate(data)):
             sample = self.processLine(_sample)
@@ -78,17 +69,17 @@ class NewsGroupDataset(AbstractDataset):
         print ("Class balance", self.class_balance)
 
         if args.class_balance:
-            raise NotImplementedError("NewsGroup dataset doesn't support balanced sampling")
+            raise NotImplementedError("IMDB dataset doesn't support balanced sampling")
         if args.objective == 'mse':
-            raise NotImplementedError("News Group does not support Regression objective")
+            raise NotImplementedError("IMDB dataset does not support Regression objective")
 
     def processLine(self, row):
         text, label, label_name = row
 
-        char = [c for c in text[::-1]]
+        chars= [c for c in text[::-1]]
 
 
-        x1 = get_indices_tensor(char, self.char_to_indx, self.max_char_length)
+        x1 = get_indices_tensor(chars, self.char_to_indx, self.max_char_length)
         x2 =  get_indices_tensor(text.split(), self.word_to_indx, self.max_word_length)
 
         sample = {'text':text,'x_char':x1, 'x_word':x2, 'y':label, 'y_name': label_name}
