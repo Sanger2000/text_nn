@@ -1,4 +1,4 @@
-
+import os
 import gzip
 import re
 import tqdm
@@ -15,14 +15,15 @@ def preprocess_data(set_type):
     output: tuple of (features, labels) for data where labels are 0 for negative 1 for
     positive and features is a list of each review
     '''
-    label_dictionary = [0, 0, 0, 1, None, None, 1, 2, 2, 2]
-    label_name_dictionary = ['Worst', 'Medium', 'Best']
+    label_dictionary = {'neg': 0, 'pos': 1}
+    label_name_dictionary = ['Bad', 'Good']
 
-    filename = "raw_data/imdb/%s/" %data_type
+    filename = "raw_data/imdb/%s/" % (set_type)
     preprocessed_data = []
+    
     for sentiment in ('neg', 'pos'):
         for file in os.listdir(filename + sentiment):
-            label = label_dictionary[int(file[file.index('_')+1:file.index('.')])-1]
+            label = label_dictionary[sentiment]
 
             text = open(filename + sentiment + '/' + file, 'r').read()
             text = re.sub('\W+', ' ', text).lower().strip()
@@ -37,7 +38,7 @@ class IMDBDataset(AbstractDataset):
 
     def __init__(self, args, word_to_indx, char_to_indx, name):
         self.args = args
-        self.args.num_class = 3
+        self.args.num_class = 23
         self.name = name
         self.dataset = []
         self.word_to_indx  = word_to_indx
