@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.autograd as autograd
 import torch.nn.functional as F
-from rationale_net.models.transfomer_modules import Embedder, PositionalEncoder, EncoderLayer, DecoderLayer, get_clones
+from rationale_net.models.transformer_modules import Embedder, PositionalEncoder, EncoderLayer, DecoderLayer, get_clones
 import pdb
 
 class Encoder(nn.Module):

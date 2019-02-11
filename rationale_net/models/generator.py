@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.autograd as autograd
 import torch.nn.functional as F
 import rationale_net.models.cnn as cnn
-import rationale_net.models.character_cnn as char_cnn
+from rationale_net.models.transformer_modules import PositionalEncoder, EncoderLayer, Norm, get_clones
 import rationale_net.utils.learn as learn
 import pdb
 
