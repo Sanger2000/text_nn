@@ -29,9 +29,8 @@ if __name__ == '__main__':
     args.model_path = '{}.pt'.format(os.path.join(args.save_dir, results_path_stem))
 
     # model
-    gen, model = model_factory.get_model(args, char_embeddings, train_data, True)
+    gen, model = model_factory.get_model(args, char_embeddings, train_data)
 
-    print()
     # train
     if args.train :
         epoch_stats, model, gen = train.train_model(train_data, dev_data, model, gen, args)

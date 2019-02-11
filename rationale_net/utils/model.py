@@ -1,4 +1,5 @@
 import torch
+import rationale_net.models.transformer as transformer
 import rationale_net.models.encoder as encoder
 import rationale_net.models.generator as generator
 import rationale_net.models.tagger as tagger
@@ -7,7 +8,7 @@ import rationale_net.utils.learn as learn
 import os
 import pdb
 
-def get_model(args, embeddings, train_data, isChar):
+def get_model(args, embeddings, train_data):
     if args.snapshot is None:
         if args.use_as_tagger == True:
             gen = empty.Empty()
@@ -15,7 +16,7 @@ def get_model(args, embeddings, train_data, isChar):
         else:
             
             gen   = generator.Generator(embeddings, args)
-            model = encoder.Encoder(embeddings, args, isChar)
+            model = encoder.Encoder(embeddings, args)
     else :
         print('\nLoading model from [%s]...' % args.snapshot)
         try:

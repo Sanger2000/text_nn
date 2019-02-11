@@ -36,6 +36,9 @@ def parse_args():
     parser.add_argument('--num_workers' , type=int, default=4, help='num workers for data loader')
     # model
     parser.add_argument('--model_form', type=str, default='cnn', help="Form of model, i.e cnn, rnn, etc.")
+    parser.add_argument('d_model', type=int, default=512, help='Embedding dimension of model')
+    parser.add_argument('src_vocab', type=int, default=100, help='Max number of input vocab characters')
+    parser.add_argument('trg_vocab', type=int, default=100, help='Max number of output vocab characters')
     parser.add_argument('--use_embedding_fc', type=bool, default=False, help="Use embedding fc before conv-net")
     parser.add_argument('--num_layers', type=int, default=2, help="Num layers of model_form to use")
     parser.add_argument('--dropout', type=float, default=0.1, help='the probability for dropout [default: 0.5]')
