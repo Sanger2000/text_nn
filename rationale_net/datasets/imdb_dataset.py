@@ -38,7 +38,7 @@ class IMDBDataset(AbstractDataset):
 
     def __init__(self, args, word_to_indx, char_to_indx, name):
         self.args = args
-        self.args.num_class = 23
+        self.args.num_class = 2
         self.name = name
         self.dataset = []
         self.word_to_indx  = word_to_indx

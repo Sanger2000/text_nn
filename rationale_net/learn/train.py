@@ -182,7 +182,7 @@ def run_epoch(data_loader, train_model, model, gen, optimizer, step, args):
             if  step % 100 == 0 or args.debug_mode:
                 args.gumbel_temprature = max( np.exp((step+1) *-1* args.gumbel_decay), .05)
 
-        x_indx = learn.get_x_indx(batch, args, eval_model, 'x_char')
+        x_indx = learn.get_x_indx(batch, args, eval_model)
         text = batch['text']
         y = autograd.Variable(batch['y'], volatile=eval_model)
 

@@ -18,10 +18,18 @@ import pdb
 if __name__ == '__main__':
     # update args and print
     args = generic.parse_args()
-
     word_embeddings, word_to_indx = embedding.get_embedding_tensor(args)
+        
     args.embedding = 'char'
     char_embeddings, char_to_indx = embedding.get_embedding_tensor(args)
+    
+    if args.representation_type == 'x_word':
+        args.embedding_dim = word_embeddings.shape[1]
+        args.vocab_size = len(word_to_indx)
+
+    elif args.representation_type == 'x_char':
+        args.embedding_dim = char_embeddings.shape[1]
+        args.vocab_size = len(char_to_indx)
 
     train_data, dev_data, test_data = dataset_factory.get_dataset(args, word_to_indx, char_to_indx)
 
@@ -29,7 +37,7 @@ if __name__ == '__main__':
     args.model_path = '{}.pt'.format(os.path.join(args.save_dir, results_path_stem))
 
     # model
-    gen, model = model_factory.get_model(args, char_embeddings, train_data)
+    gen, model = model_factory.get_model(args, word_embeddings, train_data)
 
     # train
     if args.train :

@@ -19,13 +19,18 @@ class Generator(nn.Module):
         super(Generator, self).__init__()
 
         self.args = args
-        vocab_size, hidden_dim = embeddings.shape
-        self.embedding_dim = hidden_dim
-        self.embedding_layer = nn.Embedding(vocab_size, hidden_dim)
-        self.embedding_layer.weight.data = torch.from_numpy(embeddings)
-        self.embedding_layer.weight.requires_grad = False
-        if self.args.train_embedding:   
-            self.embedding_layer.weight.requires_grad = True    
+        if self.args.pretrained_embedding:
+            vocab_size, hidden_dim = embeddings.shape
+            self.embedding_dim = hidden_dim
+            self.embedding_layer = nn.Embedding(vocab_size, hidden_dim)
+            self.embedding_layer.weight.data = torch.from_numpy(embeddings)
+            self.embedding_layer.weight.requires_grad = False
+            if self.args.train_embedding:   
+                self.embedding_layer.weight.requires_grad = True    
+        else:
+            vocab_size = self.args.max_word_length	
+            hidden_dim = self.args.d_model
+            self.embedding_layer = nn.Embedding(vocab_size, hidden_dim)
 
         if self.args.use_embedding_fc:
             self.embedding_fc = nn.Linear(hidden_dim, hidden_dim)
@@ -40,9 +45,10 @@ class Generator(nn.Module):
             self.N = self.args.N
             d_model = self.args.d_model
                 
-            self.pe = PositionalEncoder(d_model)
-            self.layers = get_clones(EncoderLayer(d_model, self.args.heads), self.N)
-            self.norm = Norm(d_model)
+            self.pe = PositionalEncoder(self.args.cuda, self.args.max_word_length, d_model)
+            self.layers = get_clones(EncoderLayer(args), self.N)
+            self.norm = Norm(d_model, self.args.eps)
+            
 
             lin = nn.Linear(self.args.d_model*vocab_size, self.args.hidden_dim[0])
 

@@ -12,20 +12,25 @@ class Encoder(nn.Module):
         super(Encoder, self).__init__()
         ### Encoder
         self.args = args
-        vocab_size, hidden_dim = embeddings.shape
-        self.embedding_dim = hidden_dim
-        self.embedding_layer = nn.Embedding(vocab_size, hidden_dim)
-        self.embedding_layer.weight.data = torch.from_numpy(embeddings)
-        self.embedding_layer.weight.requires_grad = False
-        if self.args.train_embedding:   
-            self.embedding_layer.weight.requires_grad = True    
+        if self.args.pretrained_embedding:
+            vocab_size, hidden_dim = embeddings.shape
+            self.embedding_dim = hidden_dim
+            self.embedding_layer = nn.Embedding(vocab_size, hidden_dim)
+            self.embedding_layer.weight.data = torch.from_numpy(embeddings)
+            self.embedding_layer.weight.requires_grad = False
+            if self.args.train_embedding:   
+                self.embedding_layer.weight.requires_grad = True    
+        else:
+            vocab_size = self.args.vocab_size
+            hidden_dim = self.args.d_model
+            self.embedding_layer = nn.Embedding(vocab_size, hidden_dim)
 
         if self.args.use_embedding_fc:
             self.embedding_fc = nn.Linear(hidden_dim, hidden_dim)
             self.embedding_bn = nn.BatchNorm1d(hidden_dim)
 
         if args.model_form == 'cnn':
-            self.cnn = cnn.CNN(args, max_pool_over_time=True)
+            self.cnn = cnn.CNN(args, max_pool_over_time = not args.use_as_tagger)
             lin = nn.Linear(len(self.args.filters)*self.args.filter_num[-1], self.args.hidden_dim[0])
 
         elif args.model_form == 'transformer':
@@ -33,12 +38,12 @@ class Encoder(nn.Module):
             self.N = self.args.N
             d_model = self.args.d_model
                 
-            self.pe = PositionalEncoder(d_model)
-            self.layers = get_clones(EncoderLayer(d_model, self.args.heads), self.N)
-            self.norm = Norm(d_model)
+            self.pe = PositionalEncoder(self.args.cuda, self.args.max_word_length, d_model)
+            self.layers = get_clones(EncoderLayer(args), self.N)
+            self.norm = Norm(d_model, self.args.eps)
             
 
-            lin = nn.Linear(self.args.d_model*vocab_size, self.args.hidden_dim[0])
+            lin = nn.Linear(self.args.d_model*self.args.max_word_length, self.args.hidden_dim[0])
 
         else:
             raise NotImplementedError("Model form {} not yet supported for encoder!".format(args.model_form))
@@ -60,7 +65,6 @@ class Encoder(nn.Module):
             x_indx:  batch of word indices
             mask: Mask to apply over embeddings for tao rationales
         '''
-        
         x = self.embedding_layer(x_indx.squeeze(1))
         if self.args.cuda:
                 x = x.cuda()
@@ -77,7 +81,7 @@ class Encoder(nn.Module):
 
         elif self.args.model_form == 'transformer':
             x = self.pe(x)
-            for i in range(N):
+            for i in range(self.N):
                 x = self.layers[i](x, mask)
             hidden = self.norm(x)
         else:

@@ -21,17 +21,19 @@ def RegisterEmbedding(name):
 
 # Depending on arg, return embeddings
 def get_embedding_tensor(args):
+    if args.embedding is None:
+        args.embedding = 'glove'
+
     if args.embedding not in EMBEDDING_REGISTRY:
         raise Exception(
             NO_EMBEDDING_ERR.format(args.embedding, EMBEDDING_REGISTRY.keys()))
 
     if args.embedding in EMBEDDING_REGISTRY:
         embeddings, word_to_indx = EMBEDDING_REGISTRY[args.embedding](args)
-
-    args.embedding_dim = embeddings.shape[1]
-
+    
+    args.vocab_size = len(word_to_indx)
+    
     return embeddings, word_to_indx
-
 
 @RegisterEmbedding('beer')
 def getBeerEmbedding(args):

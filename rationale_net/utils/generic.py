@@ -2,6 +2,18 @@ import torch
 import pdb
 import argparse
 
+def string_to_list(inp, layers):
+    if inp != 'None':
+        _maker = []
+        for k in inp.split(','):
+            try:
+                _maker.append(int(k))
+            except:
+                _maker.append(None)
+        return _maker
+    else:
+        return [None for i in range(args.num_layers)]
+
 def tensor_to_numpy(tensor):
     return tensor.data[0]
 
@@ -21,6 +33,7 @@ def parse_args():
     parser.add_argument('--debug_mode', action='store_true', default=False, help='debug mode' )
     parser.add_argument('--class_balance', action='store_true', default=False, help='use balanced samlping for train loaded' )
     # learning
+    parser.add_argument('--train_embedding', default=False, help='further train embedding vectors')
     parser.add_argument('--objective', default='cross_entropy', help='choose which loss objective to use')
     parser.add_argument('--aspect', default='overall', help='which aspect to train/eval on')
     parser.add_argument('--init_lr', type=float, default=0.001, help='initial learning rate [default: 0.001]')
@@ -36,20 +49,23 @@ def parse_args():
     parser.add_argument('--num_workers' , type=int, default=4, help='num workers for data loader')
     # model
     parser.add_argument('--model_form', type=str, default='cnn', help="Form of model, i.e cnn, rnn, etc.")
-    parser.add_argument('d_model', type=int, default=512, help='Embedding dimension of model')
-    parser.add_argument('src_vocab', type=int, default=100, help='Max number of input vocab characters')
-    parser.add_argument('trg_vocab', type=int, default=100, help='Max number of output vocab characters')
+    parser.add_argument('--representation_type', type=str, default='word', help='word_text or char_text')
+    parser.add_argument('--d_model', type=int, default=512, help='Embedding dimension of model')
+    parser.add_argument('--trg_vocab', type=int, default=100, help='Max number of output vocab characters')
+    parser.add_argument('--heads', type=int, default=8, help='Number of heads for multi-head attention')
+    parser.add_argument('--N', type=int, default=4, help='Number of EncoderLayer modules for transformer Encoder')
+    parser.add_argument('--d_ff', type=int, default=2048, help='Intermediary Layer in feed-forward part of transformer')
+    parser.add_argument('--eps', type=float, default=1e-6, help='Normalization Epsilon')
     parser.add_argument('--use_embedding_fc', type=bool, default=False, help="Use embedding fc before conv-net")
     parser.add_argument('--num_layers', type=int, default=2, help="Num layers of model_form to use")
     parser.add_argument('--dropout', type=float, default=0.1, help='the probability for dropout [default: 0.5]')
     parser.add_argument('--weight_decay', type=float, default=1e-3, help='L2 norm penalty [default: 1e-3]')
-    parser.add_argument('--filter_num', type=str, default='256,1024', help='number of each kind of kernel')
+    parser.add_argument('--filter_num', type=str, default='256', help='number of each kind of kernel')
     parser.add_argument('--filters', type=str, default='3,5,7', help='comma-separated kernel size to use for convolution')
-    parser.add_argument('--filter_sizes', type=str, default='256,256,256,256,256,256')
-    parser.add_argument('--hidden_dim', type=str, default='1024,1024')
+    parser.add_argument('--hidden_dim', type=str, default='100')
     # data
     parser.add_argument('--dataset', default='news_group', help='choose which dataset to run on. [default: news_group]')
-    parser.add_argument('--embedding', default='glove', help='choose what embeddings to use. To use them, please download them to "embeddings/glove.6B.300d.txt and set this argument to "glove" [default: random] ')
+    parser.add_argument('--embedding', default=None, help='choose what embeddings to use. To use them, please download them to "embeddings/glove.6B.300d.txt and set this argument to "glove" [default: random] ')
     parser.add_argument('--max_word_length', type=int, default=80, help='choose the maximum sequence length for word vectors')
     parser.add_argument('--max_char_length', type=int, default=1446, help='choose the maximum sequence length for char vectors')
     # gumbel
@@ -68,44 +84,21 @@ def parse_args():
     args = parser.parse_args()
 
     # update args and print
-    if args.filters != None:
-        args.filters = [int(k) for k in args.filters.split(',')]
+
+    
+    args.pretrained_embedding = False if args.embedding is None else True
+   
+
+    if args.representation_type in ('word', 'char'):
+        args.representation_type = 'x_' + args.representation_type
+
     if args.objective == 'mse':
         args.num_class = 1
+    
+    args.filters = string_to_list(args.filters, 1)
+    args.filter_num = string_to_list(args.filter_num, args.num_layers)
+    args.hidden_dim = string_to_list(args.hidden_dim, 1)
 
-    if args.filter_sizes != 'None':
-        filter_maker = []
-        for k in args.filter_sizes.split(','):
-            try:
-                filter_maker.append(int(k))
-            except:
-                filter_maker.append(None)
-        args.filter_sizes = filter_maker
-    else:
-        args.filter_sizes = [None for i in range(args.num_layers)]
-
-    if args.filter_num != 'None':
-        filter_num_maker = []
-        for k in args.filter_num.split(','):
-            try:
-                filter_num_maker.append(int(k))
-            except:
-                filter_num_maker.append(None)
-        args.filter_num = filter_num_maker
-    else:
-        args.filter_num = [None for i in range(args.num_layers)]
-
-    if args.hidden_dim != 'None':
-            dim_maker = []
-            for k in args.hidden_dim.split(','):
-                print(k)
-                try:
-                    dim_maker.append(int(k))
-                except:
-                    dim_maker.append(None)
-            args.hidden_dim = dim_maker
-    else:
-        args.hidden_dim =[None] 
 
     print("\nParameters:")
     for attr, value in sorted(args.__dict__.items()):
