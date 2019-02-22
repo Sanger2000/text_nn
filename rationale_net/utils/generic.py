@@ -50,7 +50,7 @@ def parse_args():
     # model
     parser.add_argument('--model_form', type=str, default='cnn', help="Form of model, i.e cnn, rnn, etc.")
     parser.add_argument('--representation_type', type=str, default='word', help='word_text or char_text')
-    parser.add_argument('--d_model', type=int, default=512, help='Embedding dimension of model')
+    parser.add_argument('--embedding_size', type=int, default=512, help='Embedding dimension of model')
     parser.add_argument('--trg_vocab', type=int, default=100, help='Max number of output vocab characters')
     parser.add_argument('--heads', type=int, default=8, help='Number of heads for multi-head attention')
     parser.add_argument('--N', type=int, default=4, help='Number of EncoderLayer modules for transformer Encoder')
@@ -87,7 +87,7 @@ def parse_args():
 
     
     args.pretrained_embedding = False if args.embedding is None else True
-   
+    args.d_model = 2*args.embedding_size 
 
     if args.representation_type in ('word', 'char'):
         args.representation_type = 'x_' + args.representation_type

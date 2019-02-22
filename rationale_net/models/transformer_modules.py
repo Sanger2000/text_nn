@@ -10,21 +10,21 @@ import copy
 
 class PositionalEncoder(nn.Module):
 
-    def __init__(self, cuda, max_seq_len, d_model):
+    def __init__(self, cuda, max_seq_len, embedding_size):
         super(PositionalEncoder, self).__init__()
         self.cuda = cuda
-        self.d_model = d_model
-        self.pe = torch.zeros(max_seq_len, self.d_model)
+        self.embedding_size = embedding_size
+        self.pe = torch.zeros(max_seq_len, self.embedding_size)
         for pos in range(max_seq_len):
-            for i in range(0, self.d_model, 2):
-                self.pe[pos, i] = math.sin(pos / (10000 ** (2*i/self.d_model)))
-                self.pe[pos, i+1] = math.cos(pos / (10000 ** (2*i/self.d_model)))
+            for i in range(0, self.embedding_size, 2):
+                self.pe[pos, i] = math.sin(pos / (10000 ** (2*i/self.embedding_size)))
+                self.pe[pos, i+1] = math.cos(pos / (10000 ** (2*i/self.embedding_size)))
 
         self.pe = self.pe.unsqueeze(0)
 
 
     def forward(self, x):
-        x = x * math.sqrt(self.d_model)
+        x = x * math.sqrt(self.embedding_size)
         
         seq_len = x.size(1)
 
@@ -34,29 +34,29 @@ class PositionalEncoder(nn.Module):
             pe = pe.cuda()
             #concatenate x and pe
 
-        x = x + pe
+        x torch.cat(x, pe.expand(x.size(0), pe.size(0), pe.size(1))) 
         return x
 
 class MultiHeadAttention(nn.Module):
     def __init__(self, heads, d_model, dropout):
         super(MultiHeadAttention, self).__init__()
         
-        self.d_k = d_model // heads
+        self.d_split = d_model // heads
         self.heads = heads
         self.d_model = d_model
         
         #make instead head different matrices
         #split them up
-        self.q_linear = nn.Linear(d_model, d_model)
-        self.v_linear = nn.Linear(d_model, d_model)
-        self.k_linear = nn.Linear(d_model, d_model)
-        
+        self.q_linear = nn.Linear(heads, d_model, d_split)
+        self.v_linear = nn.Linear(heads, d_model, d_split)
+        self.k_linear = nn.Linear(heads, d_model, d_split)
+            
         self.dropout = nn.Dropout(dropout)
         self.out = nn.Linear(d_model, d_model)
 
-    def forward(self, q, v, k, mask=None):
+    def forward(self, x, mask=None):
         batch_size = q.size(0)
-
+        
         k = self.k_linear(k).view(batch_size, -1, self.heads, self.d_k)
         q = self.k_linear(q).view(batch_size, -1, self.heads, self.d_k)
         v = self.v_linear(v).view(batch_size, -1, self.heads, self.d_k)
@@ -65,16 +65,16 @@ class MultiHeadAttention(nn.Module):
         q = q.transpose(1, 2)
         v = v.transpose(1, 2)
 
-        scores = self.attention(q, k, v, self.d_k, mask, self.dropout)
+        scores = self.attention(q, k, v, self.d_split, mask, self.dropout)
         
         concat = scores.transpose(1,2).contiguous().view(batch_size, -1, self.d_model)
-        
+
         output = self.out(concat)
 	
         return output
     
-    def attention(self, q, k, v, d_k, mask, dropout):
-        scores = torch.matmul(q, k.transpose(-2, -1)) /  math.sqrt(d_k)
+    def attention(self, q, k, v, d_split, mask, dropout):
+        scores = torch.matmul(q, k.transpose(-2, -1)) /  math.sqrt(d_split)
 
         if mask is not None:
             mask = mask.unsqueeze(1)

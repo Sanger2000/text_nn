@@ -22,7 +22,7 @@ class Encoder(nn.Module):
                 self.embedding_layer.weight.requires_grad = True    
         else:
             vocab_size = self.args.vocab_size
-            hidden_dim = self.args.d_model
+            hidden_dim = self.args.embedding_size
             self.embedding_layer = nn.Embedding(vocab_size, hidden_dim)
 
         if self.args.use_embedding_fc:
@@ -37,8 +37,9 @@ class Encoder(nn.Module):
             
             self.N = self.args.N
             d_model = self.args.d_model
+            embedding_size = self.args.embedding_size
                 
-            self.pe = PositionalEncoder(self.args.cuda, self.args.max_word_length, d_model)
+            self.pe = PositionalEncoder(self.args.cuda, self.args.max_word_length, embedding_size)
             self.layers = get_clones(EncoderLayer(args), self.N)
             self.norm = Norm(d_model, self.args.eps)
             
