@@ -22,20 +22,15 @@ class PositionalEncoder(nn.Module):
 
         self.pe = self.pe.unsqueeze(0)
 
-
     def forward(self, x):
-        x = x * math.sqrt(self.embedding_size)
-        
         seq_len = x.size(1)
-
 
         pe = autograd.Variable(self.pe[:, :seq_len], requires_grad=False)
         if self.cuda:
             pe = pe.cuda()
-            #concatenate x and pe
-
-        x torch.cat(x, pe.expand(x.size(0), pe.size(0), pe.size(1))) 
-        return x
+        
+        output = torch.cat((x, pe.expand(x.size(0), pe.size(1), pe.size(2))), dim=-1) 
+        return output
 
 class MultiHeadAttention(nn.Module):
     def __init__(self, heads, d_model, dropout):
@@ -45,21 +40,19 @@ class MultiHeadAttention(nn.Module):
         self.heads = heads
         self.d_model = d_model
         
-        #make instead head different matrices
-        #split them up
-        self.q_linear = nn.Linear(heads, d_model, d_split)
-        self.v_linear = nn.Linear(heads, d_model, d_split)
-        self.k_linear = nn.Linear(heads, d_model, d_split)
+        self.q_linear = nn.Linear(d_model, d_model)
+        self.v_linear = nn.Linear(d_model, d_model)
+        self.k_linear = nn.Linear(d_model, d_model)
             
         self.dropout = nn.Dropout(dropout)
         self.out = nn.Linear(d_model, d_model)
 
     def forward(self, x, mask=None):
-        batch_size = q.size(0)
+        batch_size = x.size(0)
         
-        k = self.k_linear(k).view(batch_size, -1, self.heads, self.d_k)
-        q = self.k_linear(q).view(batch_size, -1, self.heads, self.d_k)
-        v = self.v_linear(v).view(batch_size, -1, self.heads, self.d_k)
+        k = self.k_linear(x).view(batch_size, -1, self.heads, self.d_split)
+        q = self.k_linear(x).view(batch_size, -1, self.heads, self.d_split)
+        v = self.v_linear(x).view(batch_size, -1, self.heads, self.d_split)
 
         k = k.transpose(1, 2)
         q = q.transpose(1, 2)
@@ -96,32 +89,18 @@ class FeedForward(nn.Module):
         self.linear_2 = nn.Linear(d_ff, d_model)
 
     def forward(self, x):
-        x = self.dropout(F.relu(self.linear_1(x)))
-        x = self.linear_2(x)
-        return x
-#use pytorch layer Norm instead
-class Norm(nn.Module):
-    def __init__(self, d_model, eps):
-        super(Norm, self).__init__()
-
-        self.size = d_model
-        
-        self.alpha = nn.Parameter(torch.ones(self.size))
-        self.bias = nn.Parameter(torch.zeros(self.size))
-        self.eps = eps
-
-    def forward(self, x):
-        norm = self.alpha * (x - x.mean(dim=-1, keepdim=True)) / (x.std(dim=-1, keepdim=True) + self.eps) + self.bias
-        return norm
+        hidden = self.dropout(F.relu(self.linear_1(x)))
+        output = self.linear_2(hidden)
+        return output
 
 class EncoderLayer(nn.Module):
     def __init__(self, args): 
-        super().__init__()
+        super(EncoderLayer, self).__init__()
         self.args = args
 
         d_model = self.args.d_model
-        self.norm_1 = Norm(d_model, self.args.eps)
-        self.norm_2 = Norm(d_model, self.args.eps)
+        self.norm_1 = nn.LayerNorm((self.args.max_word_length, d_model)
+        self.norm_2 = nn.LayerNorm((self.args.max_word_length, d_model)
 
         self.attn = MultiHeadAttention(self.args.heads, d_model, self.args.dropout)
         self.ff = FeedForward(d_model, self.args.d_ff, self.args.dropout)
@@ -129,13 +108,12 @@ class EncoderLayer(nn.Module):
         self.dropout_2 = nn.Dropout(self.args.dropout)
         
     def forward(self, x, mask):
-        x2 = self.norm_1(x)
-        #make variable names more descriptive
-        #use one input into multihead attention
-        x = x + self.dropout_1(self.attn(x2,x2,x2,mask))
-        x2 = self.norm_2(x)
-        x = x + self.dropout_2(self.ff(x2))
-        return x
+        normalized_inp = self.norm_1(x)
+        next_layer = x + self.dropout_1(self.attn(normalized_inp, mask))
+        normalized_next_layer = self.norm_2(next_layer)
+        output = next_layer + self.dropout_2(self.ff(normalized_next_layer))
+
+        return output
 
 class DecoderLayer(nn.Module):
     def __init__(self, args):
