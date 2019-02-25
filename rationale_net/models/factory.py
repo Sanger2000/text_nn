@@ -4,7 +4,7 @@ NO_MODEL_ERR = "Model {} not in MODEL_REGISTRY! Available models are {}"
 MODEL_REGISTRY = {}
 
 
-def RegisterDataset(model_name):
+def RegisterModel(model_name):
     """Registers a model."""
 
     def decorator(f):

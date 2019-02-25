@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.autograd as autograd
 import torch.nn.functional as F
 import rationale_net.models.cnn as cnn
-from rationale_net.models import AbstractEncoder
+from rationale_net.models.abstract_encoder import AbstractEncoder
 
 @RegisterModel('cnn')
 def CNNEncoder(AbstractEncoder):

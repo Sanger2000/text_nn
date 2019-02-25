@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.autograd as autograd
 import torch.nn.functional as F
-from rationale_net.models import AbstractEncoder
+from rationale_net.models.abstract_encoder import AbstractEncoder
 from rationale_net.models.transformer_modules import PositionalEncoder, EncoderLayer, Norm, get_clones
 
 @RegisterModel('transformer')
