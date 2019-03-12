@@ -1,3 +1,8 @@
+import torch
+import torch.nn as nn
+import rationale_net.utils.learn as learn
+import os
+import pdb
 
 NO_MODEL_ERR = "Model {} not in MODEL_REGISTRY! Available models are {}"
 
@@ -15,14 +20,29 @@ def RegisterModel(model_name):
 
 
 # Depending on arg, build model
-def get_model(args, word_to_indx, char_to_indx, truncate_train=False):
-    if args.model_form not in MODEL_REGISTRY:
-        raise Exception(
-            NO_MODEL_ERR.format(args.model_form, MODEL_REGISTRY.keys()))
+def get_model(args, main_embeddings, secondary_embeddings):
+    if args.snapshot is None:
+        if args.model_form not in MODEL_REGISTRY:
+            raise Exception(
+                NO_MODEL_ERR.format(args.model_form, MODEL_REGISTRY.keys()))
 
-    if args.model_form in MODEL_REGISTRY:
-        train = MODEL_REGISTRY[args.model_form](args, 'train')
-        dev = MODEL_REGISTRY[args.model_form](args, word_to_indx, char_to_indx, 'dev')
-        test = MODEL_REGISTRY[args.model_form](args, word_to_indx, char_to_indx, 'test')
+        if args.model_form in MODEL_REGISTRY:
+            if args.representation_type != 'both':
+                model = MODEL_REGISTRY[args.model_form](args, main_embeddings)
+            else:
+                model = MODEL_REGISTRY[args.model_form](args, main_embeddings, secondary_embeddings)
+        
+    else :
+        print('\nLoading model from [%s]...' % args.snapshot)
+        try:
+            gen_path = learn.get_gen_path(args.snapshot)
+            if os.path.exists(gen_path):
+                gen   = torch.load(gen_path)
+            model = torch.load(args.snapshot)
+        except :
+            print("Sorry, This snapshot doesn't exist."); exit()
 
-    return train, dev, test
+    if args.num_gpus > 1:
+        model = nn.DataParallel(model,
+                                device_ids=range(args.num_gpus))
+    return model

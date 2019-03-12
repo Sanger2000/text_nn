@@ -10,9 +10,9 @@ import numpy as np
 import pdb
 import sklearn.metrics
 import rationale_net.utils.learn as learn
+from torchsummary import summary
 
-
-def train_model(train_data, dev_data, model, gen, args):
+def train_model(train_data, dev_data, model, args):
     '''
     Train model and tune on dev set. If model doesn't improve dev performance within args.patience
     epochs, then halve the learning rate, restore the model to best and continue training.
@@ -25,10 +25,10 @@ def train_model(train_data, dev_data, model, gen, args):
 
     if args.cuda:
         model = model.cuda()
-        gen = gen.cuda()
+        #gen = gen.cuda()
 
     args.lr = args.init_lr
-    optimizer = learn.get_optimizer([model, gen], args)
+    optimizer = learn.get_optimizer([model], args)
 
     num_epoch_sans_improvement = 0
     epoch_stats = metrics.init_metrics_dictionary(modes=['train', 'dev'])
@@ -40,8 +40,7 @@ def train_model(train_data, dev_data, model, gen, args):
     dev_loader = learn.get_dev_loader(dev_data, args)
 
 
-
-
+    #summary(model, (1, args.max_char_length, args.embedding_size))
     for epoch in range(1, args.epochs + 1):
 
         print("-------------\nEpoch {}:\n".format(epoch))
@@ -53,7 +52,6 @@ def train_model(train_data, dev_data, model, gen, args):
                 data_loader=loader,
                 train_model=train_model,
                 model=model,
-                gen=gen,
                 optimizer=optimizer,
                 step=step,
                 args=args)
@@ -73,7 +71,7 @@ def train_model(train_data, dev_data, model, gen, args):
             # Subtract one because epoch is 1-indexed and arr is 0-indexed
             epoch_stats['best_epoch'] = epoch - 1
             torch.save(model, args.model_path)
-            torch.save(gen, learn.get_gen_path(args.model_path))
+            #torch.save(gen, learn.get_gen_path(args.model_path))
         else:
             num_epoch_sans_improvement += 1
 
@@ -87,33 +85,33 @@ def train_model(train_data, dev_data, model, gen, args):
             print("Reducing learning rate")
             num_epoch_sans_improvement = 0
             model.cpu()
-            gen.cpu()
+            #gen.cpu()
             model = torch.load(args.model_path)
-            gen = torch.load(learn.get_gen_path(args.model_path))
+            #gen = torch.load(learn.get_gen_path(args.model_path))
 
             if args.cuda:
                 model = model.cuda()
-                gen   = gen.cuda()
+                #gen   = gen.cuda()
             args.lr *= .5
-            optimizer = learn.get_optimizer([model, gen], args)
+            optimizer = learn.get_optimizer([model], args)
 
     # Restore model to best dev performance
     if os.path.exists(args.model_path):
         model.cpu()
         model = torch.load(args.model_path)
-        gen.cpu()
-        gen = torch.load(learn.get_gen_path(args.model_path))
+        #gen.cpu()
+        #gen = torch.load(learn.get_gen_path(args.model_path))
 
-    return epoch_stats, model, gen
+    return epoch_stats, model
 
 
-def test_model(test_data, model, gen, args):
+def test_model(test_data, model, args):
     '''
     Run model on test data, and return loss, accuracy.
     '''
     if args.cuda:
         model = model.cuda()
-        gen = gen.cuda()
+        #gen = gen.cuda()
 
     test_loader = torch.utils.data.DataLoader(
         test_data,
@@ -132,7 +130,6 @@ def test_model(test_data, model, gen, args):
         data_loader=test_loader,
         train_model=train_model,
         model=model,
-        gen=gen,
         optimizer=None,
         step=None,
         args=args)
@@ -147,7 +144,7 @@ def test_model(test_data, model, gen, args):
 
     return test_stats
 
-def run_epoch(data_loader, train_model, model, gen, optimizer, step, args):
+def run_epoch(data_loader, train_model, model, optimizer, step, args):
     '''
     Train model for one pass of train data, and return loss, acccuracy
     '''
@@ -166,9 +163,9 @@ def run_epoch(data_loader, train_model, model, gen, optimizer, step, args):
 
     if train_model:
         model.train()
-        gen.train()
+        #gen.train()
     else:
-        gen.eval()
+        #gen.eval()
         model.eval()
     
     num_batches_per_epoch = len(data_iter)
@@ -187,16 +184,19 @@ def run_epoch(data_loader, train_model, model, gen, optimizer, step, args):
         y = autograd.Variable(batch['y'], volatile=eval_model)
 
         if args.cuda:
-            x_indx, y = x_indx.cuda(), y.cuda()
-
+            y = y.cuda()
+            if args.representation_type == 'both':
+                x_indx[0], x_indx[1] = x_indx[0].cuda(), x_indx[1].cuda()
+            else:
+                x_indx = x_indx.cuda()
         if train_model:
             optimizer.zero_grad()
 
-        if args.get_rationales:
-            mask, z = gen(x_indx)
-        else:
-            mask = None
-
+        #if args.get_rationales:
+            #mask, z = gen(x_indx)
+        #else:
+        mask = None
+        
         logit, _ = model(x_indx, mask=mask)
 
         if args.use_as_tagger:
@@ -205,13 +205,14 @@ def run_epoch(data_loader, train_model, model, gen, optimizer, step, args):
 
         loss = get_loss(logit, y, args)
         obj_loss = loss
-
+        
+        '''
         if args.get_rationales:
             selection_cost, continuity_cost = gen.loss(mask, x_indx)
 
             loss += args.selection_lambda * selection_cost
             loss += args.continuity_lambda * continuity_cost
-
+        '''
         if train_model:
             loss.backward()
             optimizer.step()

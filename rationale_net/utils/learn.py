@@ -63,10 +63,11 @@ def get_optimizer(models, args):
 
 
 def get_x_indx(batch, args, eval_model):
-    x_indx = autograd.Variable(batch[args.representation_type], volatile=eval_model)
-    return x_indx
-
-
+    val = batch[args.representation_type]
+    if args.representation_type != 'both':
+        return autograd.Variable(val, volatile=eval_model)
+    else:
+        return [autograd.Variable(val[i], volatile=eval_model) for i in range(2)]
 
 def get_hard_mask(z, return_ind=False):
     '''

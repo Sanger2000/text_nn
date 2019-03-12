@@ -3,7 +3,6 @@ import torch
 import torch.nn as nn
 import torch.autograd as autograd
 import torch.nn.functional as F
-import rationale_net.models.cnn as cnn
 import pdb
 import copy
 
@@ -99,8 +98,8 @@ class EncoderLayer(nn.Module):
         self.args = args
 
         d_model = self.args.d_model
-        self.norm_1 = nn.LayerNorm((self.args.max_word_length, d_model)
-        self.norm_2 = nn.LayerNorm((self.args.max_word_length, d_model)
+        self.norm_1 = nn.LayerNorm((self.args.max_word_length, d_model))
+        self.norm_2 = nn.LayerNorm((self.args.max_word_length, d_model))
 
         self.attn = MultiHeadAttention(self.args.heads, d_model, self.args.dropout)
         self.ff = FeedForward(d_model, self.args.d_ff, self.args.dropout)

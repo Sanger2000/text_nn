@@ -50,7 +50,7 @@ def parse_args():
     # model
     parser.add_argument('--model_form', type=str, default='cnn', help="Form of model, i.e cnn, rnn, etc.")
     parser.add_argument('--representation_type', type=str, default='word', help='word_text or char_text')
-    parser.add_argument('--embedding_size', type=int, default=512, help='Embedding dimension of model')
+    parser.add_argument('--embedding_size', type=int, default=None, help='Embedding dimension of model')
     parser.add_argument('--trg_vocab', type=int, default=100, help='Max number of output vocab characters')
     parser.add_argument('--heads', type=int, default=8, help='Number of heads for multi-head attention')
     parser.add_argument('--N', type=int, default=4, help='Number of EncoderLayer modules for transformer Encoder')
@@ -58,9 +58,10 @@ def parse_args():
     parser.add_argument('--eps', type=float, default=1e-6, help='Normalization Epsilon')
     parser.add_argument('--use_embedding_fc', type=bool, default=False, help="Use embedding fc before conv-net")
     parser.add_argument('--num_layers', type=int, default=2, help="Num layers of model_form to use")
+    parser.add_argument('--fully_connected_layer', type=int, default=256, help="Num layers of model_form to use")
     parser.add_argument('--dropout', type=float, default=0.1, help='the probability for dropout [default: 0.5]')
     parser.add_argument('--weight_decay', type=float, default=1e-3, help='L2 norm penalty [default: 1e-3]')
-    parser.add_argument('--filter_num', type=str, default='256', help='number of each kind of kernel')
+    parser.add_argument('--filter_num', type=str, default='256,256', help='number of each kind of kernel')
     parser.add_argument('--filters', type=str, default='3,5,7', help='comma-separated kernel size to use for convolution')
     parser.add_argument('--hidden_dim', type=str, default='100')
     # data
@@ -87,7 +88,8 @@ def parse_args():
 
     
     args.pretrained_embedding = False if args.embedding is None else True
-    args.d_model = 2*args.embedding_size 
+    if args.embedding_size is not None:
+        args.d_model = 2*args.embedding_size 
 
     if args.representation_type in ('word', 'char'):
         args.representation_type = 'x_' + args.representation_type

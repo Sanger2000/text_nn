@@ -2,6 +2,7 @@ import os
 import gzip
 import re
 import tqdm
+import torch
 from rationale_net.utils.embedding import get_indices_tensor
 from rationale_net.datasets.factory import RegisterDataset
 from rationale_net.datasets.abstract_dataset import AbstractDataset
@@ -82,6 +83,6 @@ class IMDBDataset(AbstractDataset):
 
         x1 = get_indices_tensor(chars, self.char_to_indx, self.max_char_length)
         x2 =  get_indices_tensor(text.split(), self.word_to_indx, self.max_word_length)
-
-        sample = {'text':text,'x_char':x1, 'x_word':x2, 'y':label, 'y_name': label_name}
+        x3 = (x1, x2)
+        sample = {'text':text,'x_char':x1, 'x_word':x2, 'both':x3, 'y':label, 'y_name': label_name}
         return sample

@@ -8,13 +8,14 @@ class CNN(nn.Module):
 
     def __init__(self, args, max_pool_over_time=False, intermediary_dropout=False):
         super(CNN, self).__init__()
-
+        print(args.filter_num)
+        print(args.num_layers)
         self.args = args
         self.layers = []        
         for layer in range(self.args.num_layers):
             convs = []
             for filt in self.args.filters:
-                in_channels = self.args.embedding_dim if layer==0 else self.args.filter_num[layer-1] * len(self.args.filters)
+                in_channels = self.args.embedding_size if layer==0 else self.args.filter_num[layer-1] * len(self.args.filters)
                 kernel_size = filt
                 new_conv = nn.Conv1d(in_channels = in_channels, out_channels = args.filter_num[layer], kernel_size=kernel_size)
                 self.add_module('layer_'+str(layer)+'_conv_'+str(filt), new_conv)

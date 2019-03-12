@@ -1,2 +1,4 @@
 import rationale_net.models.cnn_encoder
 import rationale_net.models.transformer_encoder
+import rationale_net.models.bidirectional_lstm_encoder
+import rationale_net.models.composite_encoder

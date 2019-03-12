@@ -1,6 +1,6 @@
 import torch
 import rationale_net.models.transformer as transformer
-import rationale_net.models.encoder as encoder
+#import rationale_net.models.encoder as encoder
 import rationale_net.models.generator as generator
 import rationale_net.models.tagger as tagger
 import rationale_net.models.empty as empty
@@ -8,7 +8,7 @@ import rationale_net.utils.learn as learn
 import os
 import pdb
 
-def get_model(args, embeddings, train_data):
+def get_model(args, embeddings):
     if args.snapshot is None:
         if args.use_as_tagger == True:
             gen = empty.Empty()

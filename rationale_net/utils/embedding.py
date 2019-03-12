@@ -31,8 +31,6 @@ def get_embedding_tensor(args):
     if args.embedding in EMBEDDING_REGISTRY:
         embeddings, word_to_indx = EMBEDDING_REGISTRY[args.embedding](args)
     
-    args.vocab_size = len(word_to_indx)
-    
     return embeddings, word_to_indx
 
 @RegisterEmbedding('beer')
