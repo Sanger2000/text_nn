@@ -17,13 +17,13 @@ class AbstractEncoder(nn.Module):
             self.embedding_layer = nn.Embedding(vocab_size, hidden_dim)
             self.embedding_layer.weight.data = torch.from_numpy(embeddings)
             self.embedding_layer.weight.requires_grad = False
-            if self.args.train_embedding:   
-                self.embedding_layer.weight.requires_grad = True    
+            if self.args.train_embedding:
+                self.embedding_layer.weight.requires_grad = True
         else:
             vocab_size = self.args.vocab_size
             hidden_dim = self.args.embedding_size
             self.embedding_layer = nn.Embedding(vocab_size, hidden_dim)
-        
+
         if self.args.use_embedding_fc:
             self.embedding_fc = nn.Linear(hidden_dim, hidden_dim)
             self.embedding_bn = nn.BatchNorm1d(hidden_dim)
@@ -46,8 +46,8 @@ class AbstractEncoder(nn.Module):
     def forward(self, x_indx):
         x = self.embedding_layer(x_indx.squeeze(1))
         if self.args.cuda:
-                x = x.cuda()
-         
+            x = x.cuda()
+
         if self.args.use_embedding_fc:
             x = F.relu(self.embedding_fc(x))
             x = self.dropout(x)
@@ -64,5 +64,5 @@ class AbstractEncoder(nn.Module):
             hidden = self.fc[i](hidden)
         hidden = self.dropout(hidden)
         logit = self.hidden(hidden)
-        
+
         return logit, hidden

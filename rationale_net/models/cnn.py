@@ -2,16 +2,15 @@ import torch
 import torch.nn as nn
 import torch.autograd as autograd
 import torch.nn.functional as F
-import pdb
+
 
 class CNN(nn.Module):
 
     def __init__(self, args, max_pool_over_time=False, intermediary_dropout=False):
         super(CNN, self).__init__()
-        print(args.filter_num)
-        print(args.num_layers)
+
         self.args = args
-        self.layers = []        
+        self.layers = []
         for layer in range(self.args.num_layers):
             convs = []
             for filt in self.args.filters:
@@ -55,4 +54,4 @@ class CNN(nn.Module):
         activ = self._conv(x)
         if self.max_pool:
             activ = self._pool(activ)
-        return activ 
+        return activ
