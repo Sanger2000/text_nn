@@ -15,7 +15,7 @@ def string_to_list(inp, layers):
         return [None for i in range(args.num_layers)]
 
 def tensor_to_numpy(tensor):
-    return tensor.data[0]
+    return tensor.item()
 
 class Namespace:
     def __init__(self, **kwargs):
