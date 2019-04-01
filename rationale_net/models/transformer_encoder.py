@@ -21,8 +21,8 @@ class TransformerEncoder(AbstractEncoder):
         self.norm = nn.LayerNorm((self.args.max_word_length, d_model))
 
 
-    def forward(self, x, mask=None):
-        x = super().forward(x)
+    def forward(self, x_char=None, x_word=None, mask=None):
+        x = super().forward(x_char, x_word)
         
         x = self.pe(x)
 

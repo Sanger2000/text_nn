@@ -1,0 +1,27 @@
+{
+"search_space":
+    {
+    "embedding": ["glove"],
+    "model_form": ["cnn"],
+    "dataset": ["imdb"],
+    "batch_size": [64],
+    "representation_type": ["word", "char"],
+    "epochs": [50],
+    "fully_connected_layer": [64, 128],
+    "hidden_dim": [[64], [128]],
+    "pretrain_embeddings": [false],
+    "N": [0],
+    "d_ff": [0],
+    "heads": [0],
+    "filter_num": [[256], [256, 256], [512]],
+    "input_types": [null],
+    "encoders": [null],
+    "dropout": [0, 0.1],
+    "cuda": [true],
+    "train": [true],
+    "test": [true],
+    "init_lr": [0.0001]
+    },
+"available_gpus":[0]
+}
+

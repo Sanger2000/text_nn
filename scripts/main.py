@@ -2,10 +2,10 @@ from os.path import dirname, realpath
 import sys
 sys.path.append(dirname(dirname(realpath(__file__))))
 import argparse
-
+import copy
 import rationale_net.datasets.factory as dataset_factory
 import rationale_net.utils.embedding as embedding
-import rationale_net.utils.model as model_factory
+import rationale_net.models.factory as model_factory
 import rationale_net.utils.generic as generic
 import rationale_net.learn.train as train
 import os
@@ -21,15 +21,22 @@ if __name__ == '__main__':
     word_embeddings, word_to_indx = embedding.get_embedding_tensor(args)
         
     args.embedding = 'char'
-    char_embeddings, char_to_indx = embedding.get_embedding_tensor(args)
-    
-    if args.representation_type == 'x_word':
-        args.embedding_dim = word_embeddings.shape[1]
+    char_embeddings, char_to_indx = embedding.get_embedding_tensor(args) 
+    if args.dataset == "news_group":
+        args.num_class = 20
+
+    if args.representation_type == 'word':
+        if args.embedding_size is None:
+            args.embedding_size = word_embeddings.shape[1]
         args.vocab_size = len(word_to_indx)
 
-    elif args.representation_type == 'x_char':
-        args.embedding_dim = char_embeddings.shape[1]
+    elif args.representation_type == 'char':
+        if args.embedding_size is None:
+            args.embedding_size = char_embeddings.shape[1]
         args.vocab_size = len(char_to_indx)
+
+    elif args.representation_type == 'both':
+        args.vocab_size = len(word_to_indx)
 
     train_data, dev_data, test_data = dataset_factory.get_dataset(args, word_to_indx, char_to_indx)
 
@@ -37,11 +44,12 @@ if __name__ == '__main__':
     args.model_path = '{}.pt'.format(os.path.join(args.save_dir, results_path_stem))
 
     # model
-    gen, model = model_factory.get_model(args, word_embeddings, train_data)
+    model = model_factory.get_model(args, char_embeddings, word_embeddings)
 
     # train
     if args.train :
-        epoch_stats, model, gen = train.train_model(train_data, dev_data, model, gen, args)
+        print('test')
+        epoch_stats, model = train.train_model(train_data, dev_data, model, args)
         args.epoch_stats = epoch_stats
         save_path = args.results_path
         print("Save train/dev results to", save_path)
@@ -51,7 +59,7 @@ if __name__ == '__main__':
 
     # test
     if args.test :
-        test_stats = train.test_model(test_data, model, gen, args)
+        test_stats = train.test_model(test_data, model, args)
         args.test_stats = test_stats
         args.train_data = train_data
         args.test_data = test_data

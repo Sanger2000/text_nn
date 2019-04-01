@@ -61,14 +61,6 @@ def get_optimizer(models, args):
         params.extend([param for param in model.parameters() if param.requires_grad])
     return torch.optim.Adam(params, lr=args.lr,  weight_decay=args.weight_decay)
 
-
-def get_x_indx(batch, args, eval_model):
-    val = batch[args.representation_type]
-    if args.representation_type != 'both':
-        return autograd.Variable(val, volatile=eval_model)
-    else:
-        return [autograd.Variable(val[i], volatile=eval_model) for i in range(2)]
-
 def get_hard_mask(z, return_ind=False):
     '''
         -z: torch Tensor where each element probablity of element

@@ -2,17 +2,17 @@ import torch
 import pdb
 import argparse
 
-def string_to_list(inp, layers):
-    if inp != 'None':
+def string_to_list(inp, cast_func=int):
+    if inp != None:
         _maker = []
         for k in inp.split(','):
             try:
-                _maker.append(int(k))
+                _maker.append(cast_func(k))
             except:
                 _maker.append(None)
         return _maker
     else:
-        return [None for i in range(args.num_layers)]
+        return None
 
 def tensor_to_numpy(tensor):
     return tensor.item()
@@ -57,7 +57,7 @@ def parse_args():
     parser.add_argument('--d_ff', type=int, default=2048, help='Intermediary Layer in feed-forward part of transformer')
     parser.add_argument('--eps', type=float, default=1e-6, help='Normalization Epsilon')
     parser.add_argument('--use_embedding_fc', type=bool, default=False, help="Use embedding fc before conv-net")
-    parser.add_argument('--num_layers', type=int, default=2, help="Num layers of model_form to use")
+    parser.add_argument('--num_layers', type=int, default=1, help="Num layers of model_form to use")
     parser.add_argument('--fully_connected_layer', type=int, default=256, help="Num layers of model_form to use")
     parser.add_argument('--dropout', type=float, default=0.1, help='the probability for dropout [default: 0.5]')
     parser.add_argument('--weight_decay', type=float, default=1e-3, help='L2 norm penalty [default: 1e-3]')
@@ -65,6 +65,8 @@ def parse_args():
     parser.add_argument('--filters', type=str, default='3,5,7', help='comma-separated kernel size to use for convolution')
     parser.add_argument('--hidden_dim', type=str, default='100')
     # data
+    parser.add_argument('--input_types', type=str, default=None, help='list of input types for composite encoder')
+    parser.add_argument('--encoders', type=str, default=None, help='list of encoders for composite encoder')
     parser.add_argument('--dataset', default='news_group', help='choose which dataset to run on. [default: news_group]')
     parser.add_argument('--embedding', default=None, help='choose what embeddings to use. To use them, please download them to "embeddings/glove.6B.300d.txt and set this argument to "glove" [default: random] ')
     parser.add_argument('--max_word_length', type=int, default=80, help='choose the maximum sequence length for word vectors')
@@ -77,7 +79,6 @@ def parse_args():
     parser.add_argument('--selection_lambda', type=float, default=.01, help="y1 in Gen cost L + y1||z|| + y2|zt - zt-1| + y3|{z}|")
     parser.add_argument('--continuity_lambda', type=float, default=.01, help="y2 in Gen cost L + y1||z|| + y2|zt - zt-1|+ y3|{z}|")
     parser.add_argument('--num_class', type=int, default=2, help="num classes")
-
     # tagging task support. Note, does not support rationales x tagging
     parser.add_argument('--use_as_tagger',  action='store_true', default=False, help="Use model for a taggign task, i.e with labels per word in the document. Note only supports binary tagging")
     parser.add_argument('--tag_lambda', type=float, default=.5, help="Lambda to weight the null entity class")
@@ -87,19 +88,19 @@ def parse_args():
     # update args and print
 
     
-    args.pretrained_embedding = False if args.embedding is None else True
+    args.pretrained_embedding = True
     if args.embedding_size is not None:
+        args.pretrained_embedding = False
         args.d_model = 2*args.embedding_size 
-
-    if args.representation_type in ('word', 'char'):
-        args.representation_type = 'x_' + args.representation_type
 
     if args.objective == 'mse':
         args.num_class = 1
     
-    args.filters = string_to_list(args.filters, 1)
-    args.filter_num = string_to_list(args.filter_num, args.num_layers)
-    args.hidden_dim = string_to_list(args.hidden_dim, 1)
+    args.input_types = string_to_list(args.input_types, cast_func=str)
+    args.encoders = string_to_list(args.encoders, cast_func=str)
+    args.filters = string_to_list(args.filters)
+    args.filter_num = string_to_list(args.filter_num)
+    args.hidden_dim = string_to_list(args.hidden_dim)
 
 
     print("\nParameters:")

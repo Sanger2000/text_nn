@@ -19,7 +19,7 @@ RESULTS_PATH_APPEAR_ERR = 'results_path should not appear in config. It will be 
 SUCESSFUL_SEARCH_STR = "SUCCESS! Grid search results dumped to {}. Best dev loss: {},  dev accuracy: {:.3f}"
 
 RESULT_KEY_STEMS = ['{}_loss', '{}_obj_loss', '{}_k_selection_loss',
-        '{}_k_continuity_loss','{}_metric']
+        '{}_k_continuity_loss','{}_accuracy']
 
 LOG_KEYS = ['results_path', 'model_path', 'log_path']
 SORT_KEY = 'dev_loss'
@@ -170,7 +170,7 @@ if __name__ == "__main__":
     summary = sorted(summary, key=lambda k: k[SORT_KEY])
 
     dump_result_string = SUCESSFUL_SEARCH_STR.format(
-        args.result_path, summary[0]['dev_loss'], summary[0]['dev_metric']
+        args.result_path, summary[0]['dev_loss'], summary[0]['dev_accuracy']
     )
     # Write summary to csv
     with open(args.result_path, 'w') as out_file:

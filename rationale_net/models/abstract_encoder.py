@@ -23,7 +23,7 @@ class AbstractEncoder(nn.Module):
             vocab_size = self.args.vocab_size
             hidden_dim = self.args.embedding_size
             self.embedding_layer = nn.Embedding(vocab_size, hidden_dim)
-
+            print('using training embedding layer')
         if self.args.use_embedding_fc:
             self.embedding_fc = nn.Linear(hidden_dim, hidden_dim)
             self.embedding_bn = nn.BatchNorm1d(hidden_dim)
@@ -43,7 +43,9 @@ class AbstractEncoder(nn.Module):
         self.dropout = nn.Dropout(args.dropout)
         self.hidden = nn.Linear(self.args.hidden_dim[-1], self.args.num_class)
 
-    def forward(self, x_indx):
+    def forward(self, x_indx_char, x_indx_word):
+        x_indx = x_indx_char if x_indx_char is not None else x_indx_word
+
         x = self.embedding_layer(x_indx.squeeze(1))
         if self.args.cuda:
             x = x.cuda()

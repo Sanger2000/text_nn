@@ -1,0 +1,26 @@
+{
+"search_space":
+    {
+    "embedding": ["glove"],
+    "model_form": ["rnn"],
+    "dataset": ["imdb", "news_group"],
+    "representation_type": ["word"],
+    "epochs": [40, 60],
+    "fully_connected_layer": [64, 128],
+    "hidden_dim": [[64], [128], [32, 32]],
+    "pretrain_embeddings": [false],
+    "N": [0],
+    "d_ff": [256, 512],
+    "heads": [0],
+    "num_layers": [2, 4],
+    "filter_num": [null],
+    "input_types": [null],
+    "encoders": [null],
+    "dropout": [0, 0.1],
+    "cuda": [true],
+    "train": [true],
+    "test": [true],
+    "init_lr": [0.0001]
+    },
+"available_gpus":[0, 1, 2, 3]
+}

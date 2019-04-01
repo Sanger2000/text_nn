@@ -1,7 +1,6 @@
 import os
 import sys
 import torch
-import torch.autograd as autograd
 import torch.nn.functional as F
 import rationale_net.utils.generic as generic
 import rationale_net.utils.metrics as metrics
@@ -34,7 +33,6 @@ def train_model(train_data, dev_data, model, args):
     epoch_stats = metrics.init_metrics_dictionary(modes=['train', 'dev'])
     step = 0
     tuning_key = "dev_{}".format(args.tuning_metric)
-    best_epoch_func = min if tuning_key == 'loss' else max
 
     train_loader = learn.get_train_loader(train_data, args)
     dev_loader = learn.get_dev_loader(dev_data, args)
@@ -63,6 +61,7 @@ def train_model(train_data, dev_data, model, args):
 
 
         # Save model if beats best dev
+	
         best_func = min if args.tuning_metric == 'loss' else max
         if best_func(epoch_stats[tuning_key]) == epoch_stats[tuning_key][-1]:
             num_epoch_sans_improvement = 0
@@ -179,16 +178,19 @@ def run_epoch(data_loader, train_model, model, optimizer, step, args):
             if  step % 100 == 0 or args.debug_mode:
                 args.gumbel_temprature = max( np.exp((step+1) *-1* args.gumbel_decay), .05)
 
-        x_indx = learn.get_x_indx(batch, args, eval_model)
+        x_indx_char = batch['x_char']
+        x_indx_word = batch['x_word']
         text = batch['text']
-        y = autograd.Variable(batch['y'], volatile=eval_model)
+        y = torch.tensor(batch['y'], requires_grad=False)
 
         if args.cuda:
             y = y.cuda()
-            if args.representation_type == 'both':
-                x_indx[0], x_indx[1] = x_indx[0].cuda(), x_indx[1].cuda()
-            else:
-                x_indx = x_indx.cuda()
+            x_indx_char = x_indx_char.cuda()
+            x_indx_word = x_indx_word.cuda()
+            if args.representation_type == 'char':
+                x_indx_word = None
+            elif args.representation_type == 'word':
+                x_indx_char = None
         if train_model:
             optimizer.zero_grad()
 
@@ -196,8 +198,7 @@ def run_epoch(data_loader, train_model, model, optimizer, step, args):
             #mask, z = gen(x_indx)
         #else:
         mask = None
-        
-        logit, _ = model(x_indx, mask=mask)
+        logit, _ = model(x_indx_char, x_indx_word, mask=mask)
 
         if args.use_as_tagger:
             logit = logit.view(-1, 2)

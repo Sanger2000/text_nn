@@ -20,17 +20,19 @@ def RegisterModel(model_name):
 
 
 # Depending on arg, build model
-def get_model(args, main_embeddings, secondary_embeddings):
+def get_model(args, char_embeddings, word_embeddings):
     if args.snapshot is None:
         if args.model_form not in MODEL_REGISTRY:
             raise Exception(
                 NO_MODEL_ERR.format(args.model_form, MODEL_REGISTRY.keys()))
 
         if args.model_form in MODEL_REGISTRY:
-            if args.representation_type != 'both':
-                model = MODEL_REGISTRY[args.model_form](args, main_embeddings)
+            if args.representation_type == 'word':
+                model = MODEL_REGISTRY[args.model_form](args, word_embeddings)
+            elif args.representation_type == 'char':
+                model = MODEL_REGISTRY[args.model_form](args, char_embeddings)
             else:
-                model = MODEL_REGISTRY[args.model_form](args, main_embeddings, secondary_embeddings)
+                model = MODEL_REGISTRY[args.model_form](args, char_embeddings, word_embeddings)
         
     else :
         print('\nLoading model from [%s]...' % args.snapshot)

@@ -103,5 +103,6 @@ def get_indices_tensor(text_arr, word_to_indx, max_length):
         text_indx.extend( [nil_indx for _ in range(max_length - len(text_indx))])
 
     x =  torch.LongTensor([text_indx])
+    x.requires_grad = False
 
     return x

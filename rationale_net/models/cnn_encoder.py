@@ -13,8 +13,8 @@ class CNNEncoder(AbstractEncoder):
         
         self.cnn = cnn.CNN(args, max_pool_over_time = not args.use_as_tagger)
 
-    def forward(self, x, mask=None, fc=True):
-        x = super().forward(x)
+    def forward(self, x_char=None, x_word=None, mask=None, fc=True):
+        x = super().forward(x_char, x_word)
 
         if mask is not None:        
             x = x * mask.unsqueeze(-1)

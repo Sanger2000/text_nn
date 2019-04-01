@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import hashlib
-
+import copy
 
 POSS_VAL_NOT_LIST = "Flag {} has an invalid list of values: {}. Length of list must be >=1"
 
@@ -33,6 +33,7 @@ def parse_dispatcher_config(config):
             experiment_axies.append(flag)
 
         children = []
+        children_map = []
         if len(possible_values) == 0 or type(possible_values) is not list:
             raise Exception(POSS_VAL_NOT_LIST.format(flag, possible_values))
         for value in possible_values:
@@ -43,7 +44,8 @@ def parse_dispatcher_config(config):
                     else:
                         new_job_str = parent_job
                 elif type(value) is list:
-                    val_list_str = " ".join([str(v) for v in value])
+                    #val_list_str = " ".join([str(v) for v in value])
+                    val_list_str = ",".join([str(v) for v in value])
                     new_job_str = "{} --{} {}".format(parent_job, flag,
                                                       val_list_str)
                 else:

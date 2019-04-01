@@ -14,8 +14,8 @@ class BidirectionalLSTMEncoder(AbstractEncoder):
         self.lstm = nn.LSTM(args.embedding_size, args.d_ff, args.num_layers, \
                                 batch_first=True, bidirectional=True)
 
-    def forward(self, x, mask=None):
-        x = super().forward(x)
+    def forward(self, x_char=None, x_word=None, mask=None):
+        x = super().forward(x_char, x_word)
 
         h0 = torch.zeros(self.args.num_layers*2, x.size(0), self.args.d_ff)
         c0 = torch.zeros(self.args.num_layers*2, x.size(0), self.args.d_ff)
